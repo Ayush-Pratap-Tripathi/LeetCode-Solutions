@@ -1,41 +1,38 @@
-import java.util.*;
-
 public class Solution {
     public String sortVowels(String s) {
-        // Define vowels (both lowercase and uppercase)
-        Set<Character> vowelsSet = new HashSet<>(Arrays.asList(
-            'a','e','i','o','u','A','E','I','O','U'
-        ));
+        // ASCII size to store counts of all characters
+        int[] freq = new int[128]; 
         
-        // Collect vowels
-        List<Character> vowels = new ArrayList<>();
+        // Store vowels
+        String vowels = "aeiouAEIOU";
         for (char ch : s.toCharArray()) {
-            if (vowelsSet.contains(ch)) {
-                vowels.add(ch);
+            if (isVowel(ch)) {
+                freq[ch]++;
             }
         }
         
-        // Sort vowels by ASCII
-        Collections.sort(vowels);
-        
-        // Reconstruct string
+        // Build result
         StringBuilder result = new StringBuilder();
-        int vowelIndex = 0;
         for (char ch : s.toCharArray()) {
-            if (vowelsSet.contains(ch)) {
-                result.append(vowels.get(vowelIndex++)); // place sorted vowel
+            if (isVowel(ch)) {
+                // Find next smallest vowel by ASCII
+                for (int ascii = 0; ascii < 128; ascii++) {
+                    if (freq[ascii] > 0) {
+                        result.append((char) ascii);
+                        freq[ascii]--;
+                        break;
+                    }
+                }
             } else {
-                result.append(ch); // consonant remains same
+                result.append(ch); // keep consonant same
             }
         }
         
         return result.toString();
     }
-
-    // For testing
-    public static void main(String[] args) {
-        Solution sol = new Solution();
-        System.out.println(sol.sortVowels("lEetcOde")); // Output: lEOtcede
-        System.out.println(sol.sortVowels("lYmpH"));    // Output: lYmpH
+    
+    private boolean isVowel(char ch) {
+        return "aeiouAEIOU".indexOf(ch) != -1;
     }
+    
 }
