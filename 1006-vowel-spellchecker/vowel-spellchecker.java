@@ -1,49 +1,55 @@
 import java.util.*;
 
 class Solution {
+    private static final boolean[] isVowel = new boolean[128];
+    static {
+        isVowel['a'] = isVowel['e'] = isVowel['i'] = isVowel['o'] = isVowel['u'] = true;
+    }
+
     public String[] spellchecker(String[] wordlist, String[] queries) {
-        Set<String> exactWords = new HashSet<>(Arrays.asList(wordlist));
-        Map<String, String> caseInsensitiveMap = new HashMap<>();
-        Map<String, String> vowelErrorMap = new HashMap<>();
-        
+        int n = wordlist.length;
+        Set<String> exactWords = new HashSet<>(n * 2);
+        Map<String, String> caseInsensitiveMap = new HashMap<>(n * 2);
+        Map<String, String> vowelErrorMap = new HashMap<>(n * 2);
+
+        // Preprocessing wordlist
         for (String word : wordlist) {
+            exactWords.add(word);
+
             String lower = word.toLowerCase();
             caseInsensitiveMap.putIfAbsent(lower, word);
+
             String devoweled = devowel(lower);
             vowelErrorMap.putIfAbsent(devoweled, word);
         }
-        
-        String[] result = new String[queries.length];
-        for (int i = 0; i < queries.length; i++) {
+
+        int m = queries.length;
+        String[] result = new String[m];
+
+        for (int i = 0; i < m; i++) {
             String q = queries[i];
             if (exactWords.contains(q)) {
                 result[i] = q; // exact match
-            } else {
-                String lower = q.toLowerCase();
-                if (caseInsensitiveMap.containsKey(lower)) {
-                    result[i] = caseInsensitiveMap.get(lower);
-                } else {
-                    String devoweled = devowel(lower);
-                    if (vowelErrorMap.containsKey(devoweled)) {
-                        result[i] = vowelErrorMap.get(devoweled);
-                    } else {
-                        result[i] = "";
-                    }
-                }
+                continue;
             }
+
+            String lower = q.toLowerCase();
+            if (caseInsensitiveMap.containsKey(lower)) {
+                result[i] = caseInsensitiveMap.get(lower);
+                continue;
+            }
+
+            String devoweled = devowel(lower);
+            result[i] = vowelErrorMap.getOrDefault(devoweled, "");
         }
         return result;
     }
 
     private String devowel(String word) {
-        StringBuilder sb = new StringBuilder();
-        for (char c : word.toCharArray()) {
-            if ("aeiou".indexOf(c) >= 0) {
-                sb.append('*');
-            } else {
-                sb.append(c);
-            }
+        char[] arr = word.toCharArray();
+        for (int i = 0; i < arr.length; i++) {
+            if (isVowel[arr[i]]) arr[i] = '*';
         }
-        return sb.toString();
+        return new String(arr);
     }
 }
