@@ -1,60 +1,60 @@
-class FoodRatings {
+import java.util.*;
 
-    HashMap<String, Integer> foodRating = new HashMap<>();
-    HashMap<String, String> foodCuisine = new HashMap<>();
-    HashMap<String, TreeMap<Integer, TreeSet<String>>> cuisineRatingMap = new HashMap<>();
+class FoodRatings {
+    private static class Food {
+        String name;
+        int rating;
+        Food(String name, int rating) {
+            this.name = name;
+            this.rating = rating;
+        }
+    }
+
+    private Map<String, String> foodToCuisine;
+    private Map<String, Integer> foodToRating;
+    private Map<String, PriorityQueue<Food>> cuisineToFoods;
+
     public FoodRatings(String[] foods, String[] cuisines, int[] ratings) {
-        int size = foods.length;
-        for(int i = 0; i < size; i++) {
+        foodToCuisine = new HashMap<>();
+        foodToRating = new HashMap<>();
+        cuisineToFoods = new HashMap<>();
+
+        for (int i = 0; i < foods.length; i++) {
             String food = foods[i];
             String cuisine = cuisines[i];
-            Integer rating = ratings[i];
-            foodCuisine.put(food, cuisine);
-            foodRating.put(food, rating);
-            TreeMap<Integer, TreeSet<String>> cuisineRating;
-            if(cuisineRatingMap.containsKey(cuisine)) {
-                cuisineRating = cuisineRatingMap.get(cuisine);
-            } else {
-                cuisineRating = new TreeMap<>();
-            }
-            TreeSet<String> foodSet;
-            if(cuisineRating.containsKey(rating)) {
-                foodSet = cuisineRating.get(rating);
-            } else {
-                foodSet = new TreeSet<>();
-            }
-            foodSet.add(food);
-            cuisineRating.put(rating, foodSet);
-            cuisineRatingMap.put(cuisine, cuisineRating);
+            int rating = ratings[i];
+
+            foodToCuisine.put(food, cuisine);
+            foodToRating.put(food, rating);
+
+            cuisineToFoods.putIfAbsent(cuisine, new PriorityQueue<>(
+                (a, b) -> {
+                    if (a.rating != b.rating) {
+                        return b.rating - a.rating;
+                    }
+                    return a.name.compareTo(b.name);
+                }
+            ));
+
+            cuisineToFoods.get(cuisine).offer(new Food(food, rating));
         }
     }
 
     public void changeRating(String food, int newRating) {
-        int prevFoodRating = foodRating.get(food);
-        String cuisine = foodCuisine.get(food);
-        TreeMap<Integer, TreeSet<String>> cuisineRating = cuisineRatingMap.get(cuisine);
-        TreeSet<String> prevFoodSet = cuisineRating.get(prevFoodRating);
-        prevFoodSet.remove(food);
-        foodRating.put(food, newRating);
-        if(prevFoodSet.isEmpty()) {
-            cuisineRating.remove(prevFoodRating);
-        }
-        TreeSet<String> newFoodSet;
-        if(cuisineRating.containsKey(newRating)){
-            newFoodSet = cuisineRating.get(newRating);
-        } else {
-            newFoodSet = new TreeSet<>();
-        }
-        newFoodSet.add(food);
-        cuisineRating.put(newRating, newFoodSet);
+        foodToRating.put(food, newRating);
+        String cuisine = foodToCuisine.get(food);
+        cuisineToFoods.get(cuisine).offer(new Food(food, newRating));
     }
 
     public String highestRated(String cuisine) {
-        TreeMap<Integer, TreeSet<String>> cuisineRating = cuisineRatingMap.get(cuisine);
-        Integer rating = cuisineRating.lastKey();
-        TreeSet<String> foods = cuisineRating.get(rating);
-        String food = foods.getFirst();
-        System.out.println(food);
-        return food;
+        PriorityQueue<Food> pq = cuisineToFoods.get(cuisine);
+
+        while (true) {
+            Food top = pq.peek();
+            if (top.rating == foodToRating.get(top.name)) {
+                return top.name;
+            }
+            pq.poll();
+        }
     }
 }
