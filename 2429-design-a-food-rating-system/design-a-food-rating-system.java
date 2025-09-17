@@ -1,9 +1,18 @@
 import java.util.*;
 
 class FoodRatings {
+    private static class Food {
+        String name;
+        int rating;
+        Food(String name, int rating) {
+            this.name = name;
+            this.rating = rating;
+        }
+    }
+
     private Map<String, String> foodToCuisine;
     private Map<String, Integer> foodToRating;
-    private Map<String, TreeSet<String>> cuisineToFoods;
+    private Map<String, PriorityQueue<Food>> cuisineToFoods;
 
     public FoodRatings(String[] foods, String[] cuisines, int[] ratings) {
         foodToCuisine = new HashMap<>();
@@ -18,32 +27,34 @@ class FoodRatings {
             foodToCuisine.put(food, cuisine);
             foodToRating.put(food, rating);
 
-            cuisineToFoods.putIfAbsent(cuisine, new TreeSet<>(
+            cuisineToFoods.putIfAbsent(cuisine, new PriorityQueue<>(
                 (a, b) -> {
-                    int rateA = foodToRating.get(a);
-                    int rateB = foodToRating.get(b);
-                    if (rateA != rateB) {
-                        return Integer.compare(rateB, rateA);
+                    if (a.rating != b.rating) {
+                        return b.rating - a.rating;
                     }
-                    return a.compareTo(b);
+                    return a.name.compareTo(b.name);
                 }
             ));
 
-            cuisineToFoods.get(cuisine).add(food);
+            cuisineToFoods.get(cuisine).offer(new Food(food, rating));
         }
     }
 
     public void changeRating(String food, int newRating) {
-        String cuisine = foodToCuisine.get(food);
-
-        cuisineToFoods.get(cuisine).remove(food);
-
         foodToRating.put(food, newRating);
-
-        cuisineToFoods.get(cuisine).add(food);
+        String cuisine = foodToCuisine.get(food);
+        cuisineToFoods.get(cuisine).offer(new Food(food, newRating));
     }
 
     public String highestRated(String cuisine) {
-        return cuisineToFoods.get(cuisine).first();
+        PriorityQueue<Food> pq = cuisineToFoods.get(cuisine);
+
+        while (true) {
+            Food top = pq.peek();
+            if (top.rating == foodToRating.get(top.name)) {
+                return top.name;
+            }
+            pq.poll();
+        }
     }
 }
