@@ -1,58 +1,60 @@
-import java.util.*;
-
 class FoodRatings {
 
-    // Maps food -> rating
-    private Map<String, Integer> foodRating;
-    // Maps food -> cuisine
-    private Map<String, String> foodCuisine;
-    // Maps cuisine -> TreeSet of foods ordered by (-rating, name)
-    private Map<String, TreeSet<String>> cuisineFoods;
-    // For quick rating lookup when comparing inside TreeSet
-    private Map<String, Integer> ratingLookup;
-
+    HashMap<String, Integer> foodRating = new HashMap<>();
+    HashMap<String, String> foodCuisine = new HashMap<>();
+    HashMap<String, TreeMap<Integer, TreeSet<String>>> cuisineRatingMap = new HashMap<>();
     public FoodRatings(String[] foods, String[] cuisines, int[] ratings) {
-        foodRating = new HashMap<>();
-        foodCuisine = new HashMap<>();
-        cuisineFoods = new HashMap<>();
-        ratingLookup = new HashMap<>();
-
-        for (int i = 0; i < foods.length; i++) {
-            String f = foods[i];
-            String c = cuisines[i];
-            int r = ratings[i];
-
-            foodRating.put(f, r);
-            foodCuisine.put(f, c);
-            ratingLookup.put(f, r);
-
-            cuisineFoods.putIfAbsent(c, new TreeSet<>((a, b) -> {
-                int ra = ratingLookup.get(a);
-                int rb = ratingLookup.get(b);
-                if (ra != rb) return rb - ra; // higher rating first
-                return a.compareTo(b);        // tie-break by name
-            }));
-
-            cuisineFoods.get(c).add(f);
+        int size = foods.length;
+        for(int i = 0; i < size; i++) {
+            String food = foods[i];
+            String cuisine = cuisines[i];
+            Integer rating = ratings[i];
+            foodCuisine.put(food, cuisine);
+            foodRating.put(food, rating);
+            TreeMap<Integer, TreeSet<String>> cuisineRating;
+            if(cuisineRatingMap.containsKey(cuisine)) {
+                cuisineRating = cuisineRatingMap.get(cuisine);
+            } else {
+                cuisineRating = new TreeMap<>();
+            }
+            TreeSet<String> foodSet;
+            if(cuisineRating.containsKey(rating)) {
+                foodSet = cuisineRating.get(rating);
+            } else {
+                foodSet = new TreeSet<>();
+            }
+            foodSet.add(food);
+            cuisineRating.put(rating, foodSet);
+            cuisineRatingMap.put(cuisine, cuisineRating);
         }
     }
-    
+
     public void changeRating(String food, int newRating) {
-        String c = foodCuisine.get(food);
-        TreeSet<String> set = cuisineFoods.get(c);
-
-        // Remove old entry
-        set.remove(food);
-
-        // Update rating
+        int prevFoodRating = foodRating.get(food);
+        String cuisine = foodCuisine.get(food);
+        TreeMap<Integer, TreeSet<String>> cuisineRating = cuisineRatingMap.get(cuisine);
+        TreeSet<String> prevFoodSet = cuisineRating.get(prevFoodRating);
+        prevFoodSet.remove(food);
         foodRating.put(food, newRating);
-        ratingLookup.put(food, newRating);
-
-        // Re-insert with new rating
-        set.add(food);
+        if(prevFoodSet.isEmpty()) {
+            cuisineRating.remove(prevFoodRating);
+        }
+        TreeSet<String> newFoodSet;
+        if(cuisineRating.containsKey(newRating)){
+            newFoodSet = cuisineRating.get(newRating);
+        } else {
+            newFoodSet = new TreeSet<>();
+        }
+        newFoodSet.add(food);
+        cuisineRating.put(newRating, newFoodSet);
     }
-    
+
     public String highestRated(String cuisine) {
-        return cuisineFoods.get(cuisine).first();
+        TreeMap<Integer, TreeSet<String>> cuisineRating = cuisineRatingMap.get(cuisine);
+        Integer rating = cuisineRating.lastKey();
+        TreeSet<String> foods = cuisineRating.get(rating);
+        String food = foods.getFirst();
+        System.out.println(food);
+        return food;
     }
 }
