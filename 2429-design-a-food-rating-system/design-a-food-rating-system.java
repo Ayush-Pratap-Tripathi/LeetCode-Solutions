@@ -1,60 +1,58 @@
 import java.util.*;
 
 class FoodRatings {
-    private static class Food {
-        String name;
-        int rating;
-        Food(String name, int rating) {
-            this.name = name;
-            this.rating = rating;
-        }
-    }
 
-    private Map<String, String> foodToCuisine;
-    private Map<String, Integer> foodToRating;
-    private Map<String, PriorityQueue<Food>> cuisineToFoods;
+    // Maps food -> rating
+    private Map<String, Integer> foodRating;
+    // Maps food -> cuisine
+    private Map<String, String> foodCuisine;
+    // Maps cuisine -> TreeSet of foods ordered by (-rating, name)
+    private Map<String, TreeSet<String>> cuisineFoods;
+    // For quick rating lookup when comparing inside TreeSet
+    private Map<String, Integer> ratingLookup;
 
     public FoodRatings(String[] foods, String[] cuisines, int[] ratings) {
-        foodToCuisine = new HashMap<>();
-        foodToRating = new HashMap<>();
-        cuisineToFoods = new HashMap<>();
+        foodRating = new HashMap<>();
+        foodCuisine = new HashMap<>();
+        cuisineFoods = new HashMap<>();
+        ratingLookup = new HashMap<>();
 
         for (int i = 0; i < foods.length; i++) {
-            String food = foods[i];
-            String cuisine = cuisines[i];
-            int rating = ratings[i];
+            String f = foods[i];
+            String c = cuisines[i];
+            int r = ratings[i];
 
-            foodToCuisine.put(food, cuisine);
-            foodToRating.put(food, rating);
+            foodRating.put(f, r);
+            foodCuisine.put(f, c);
+            ratingLookup.put(f, r);
 
-            cuisineToFoods.putIfAbsent(cuisine, new PriorityQueue<>(
-                (a, b) -> {
-                    if (a.rating != b.rating) {
-                        return b.rating - a.rating;
-                    }
-                    return a.name.compareTo(b.name);
-                }
-            ));
+            cuisineFoods.putIfAbsent(c, new TreeSet<>((a, b) -> {
+                int ra = ratingLookup.get(a);
+                int rb = ratingLookup.get(b);
+                if (ra != rb) return rb - ra; // higher rating first
+                return a.compareTo(b);        // tie-break by name
+            }));
 
-            cuisineToFoods.get(cuisine).offer(new Food(food, rating));
+            cuisineFoods.get(c).add(f);
         }
     }
-
+    
     public void changeRating(String food, int newRating) {
-        foodToRating.put(food, newRating);
-        String cuisine = foodToCuisine.get(food);
-        cuisineToFoods.get(cuisine).offer(new Food(food, newRating));
+        String c = foodCuisine.get(food);
+        TreeSet<String> set = cuisineFoods.get(c);
+
+        // Remove old entry
+        set.remove(food);
+
+        // Update rating
+        foodRating.put(food, newRating);
+        ratingLookup.put(food, newRating);
+
+        // Re-insert with new rating
+        set.add(food);
     }
-
+    
     public String highestRated(String cuisine) {
-        PriorityQueue<Food> pq = cuisineToFoods.get(cuisine);
-
-        while (true) {
-            Food top = pq.peek();
-            if (top.rating == foodToRating.get(top.name)) {
-                return top.name;
-            }
-            pq.poll();
-        }
+        return cuisineFoods.get(cuisine).first();
     }
 }
