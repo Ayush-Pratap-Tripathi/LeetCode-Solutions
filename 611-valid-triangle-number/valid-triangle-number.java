@@ -11,9 +11,6 @@ class Solution {
             int j = k - 1;
 
             while (i < j) {
-                if (nums[i] == 0){
-                    i++;
-                }
                 if (nums[i] + nums[j] > nums[k]) {
                     count += (j - i);
                     j--;
