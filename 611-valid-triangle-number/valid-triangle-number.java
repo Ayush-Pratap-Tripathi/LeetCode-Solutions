@@ -6,9 +6,8 @@ class Solution {
         Arrays.sort(nums);
         int n = nums.length;
 
-        // Parallelize the outer loop over k
-        int count = IntStream.range(2, n) // 2 to n-1
-                .parallel()               // make it run in parallel
+        int count = IntStream.range(2, n)
+                .parallel()
                 .map(k -> {
                     int localCount = 0;
                     int i = 0;
@@ -23,10 +22,9 @@ class Solution {
                         }
                     }
 
-                    return localCount; // return count for this k
+                    return localCount;
                 })
-                .sum(); // sum counts from all k
-
+                .sum();
         return count;
     }
 }
