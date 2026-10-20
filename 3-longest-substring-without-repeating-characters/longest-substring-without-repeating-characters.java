@@ -1,53 +1,40 @@
-import java.util.ArrayList;
-import java.util.HashSet;
-
 class Solution {
-    public int lengthOfLongestSubstring(String s) {
+    public static int longestStringLength(ArrayList<String> list) {
+        int maxLength = 0;
 
-        if (s.length() == 0) {
-            return 0;
+        for (String str : list) {
+            if (str.length() > maxLength) {
+                maxLength = str.length();
+            }
         }
 
-        ArrayList<Character> result = new ArrayList<>();
+        return maxLength;
+    }
 
-        for (int x = 0; x < s.length(); x++) {
+    public int lengthOfLongestSubstring(String s) {
+        ArrayList<String> substrings = new ArrayList<>();
 
-            if (s.length() - x <= result.size()) {
-                break;
-            }
+        String substring = "";
 
-            ArrayList<Character> substring = new ArrayList<>();
-            substring.add(s.charAt(x));
-
-            HashSet<Character> seen = new HashSet<>();
-            seen.add(s.charAt(x));
-
-            if (s.length() == 1) {
-                result = substring;
-            } else {
-
-                for (int i = x + 1; i < s.length(); i++) {
-
-                    if (seen.contains(s.charAt(i))) {
-
-                        if (substring.size() > result.size()) {
-                            result = substring;
-                        }
-                        break;
-
+        for (int i = 0; i < s.length(); i++) {
+            int j = i;
+            while (j <= s.length() - 1) {
+                if (substring.indexOf(s.charAt(j)) != -1) {
+                    substrings.add(substring);
+                    substring = "";
+                    break;
+                } else {
+                    if (j == s.length() - 1) {
+                        substring = substring + s.charAt(j);
+                        substrings.add(substring);
                     } else {
-
-                        substring.add(s.charAt(i));
-                        seen.add(s.charAt(i));
+                        substring = substring + s.charAt(j);
                     }
                 }
+                j++;
             }
-
-            if (substring.size() > result.size()) {
-                result = substring;
-            }
+            substring = "";
         }
-
-        return result.size();
+        return longestStringLength(substrings);
     }
 }
