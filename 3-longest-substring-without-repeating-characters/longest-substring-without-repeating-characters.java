@@ -1,40 +1,18 @@
+import java.util.Arrays;
+
 class Solution {
-    public static int longestStringLength(ArrayList<String> list) {
-        int maxLength = 0;
-
-        for (String str : list) {
-            if (str.length() > maxLength) {
-                maxLength = str.length();
-            }
-        }
-
-        return maxLength;
-    }
-
     public int lengthOfLongestSubstring(String s) {
-        ArrayList<String> substrings = new ArrayList<>();
-
-        String substring = "";
-
-        for (int i = 0; i < s.length(); i++) {
-            int j = i;
-            while (j <= s.length() - 1) {
-                if (substring.indexOf(s.charAt(j)) != -1) {
-                    substrings.add(substring);
-                    substring = "";
-                    break;
-                } else {
-                    if (j == s.length() - 1) {
-                        substring = substring + s.charAt(j);
-                        substrings.add(substring);
-                    } else {
-                        substring = substring + s.charAt(j);
-                    }
-                }
-                j++;
+        int[] last = new int[128];               // last index each char was seen at
+        Arrays.fill(last, -1);
+        int left = 0, best = 0;
+        for (int right = 0; right < s.length(); right++) {
+            char c = s.charAt(right);
+            if (last[c] >= left) {               // repeat inside the current window
+                left = last[c] + 1;              // jump just past the old copy
             }
-            substring = "";
+            last[c] = right;
+            best = Math.max(best, right - left + 1);
         }
-        return longestStringLength(substrings);
+        return best;
     }
 }
