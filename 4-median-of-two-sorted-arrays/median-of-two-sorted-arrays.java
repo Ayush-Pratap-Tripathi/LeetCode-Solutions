@@ -1,51 +1,61 @@
+
 class Solution {
-    public int[] mergeArray(int[] nums1, int[] nums2){
-        int n = nums1.length;
-        int m = nums2.length;
-        int[] merged = new int[n + m];
-
-        int i = 0;
-        int j = 0;
-        int k = 0;
-
-        while(i<n && j<m){
-            if(nums1[i] <= nums2[j]){
-                merged[k] = nums1[i];
-                i++;
-            }else{
-                merged[k]=nums2[j];
-                j++;
-            }
-            k++;
-        }
-
-        while (j<m) {
-            merged[k] = nums2[j];
-            j++;
-            k++;
-        }
-
-        while (i<n) {
-            merged[k] = nums1[i];
-            i++;
-            k++;
-        }
-        return merged;
-    }
-
     public double findMedianSortedArrays(int[] nums1, int[] nums2) {
-        int[] finalArray = mergeArray(nums1, nums2);
-        int n = finalArray.length;
 
-        if(n == 0) {
-            throw new IllegalArgumentException("Array can not be empty");
+        // Always binary-search the smaller array
+        if (nums1.length > nums2.length) {
+            return findMedianSortedArrays(nums2, nums1);
         }
-        if ( n%2 != 0) {
-            return finalArray[n/2];
-        }else {
-            int mid1 = finalArray[n/2 - 1];
-            int mid2 = finalArray[n/2];
-            return ((double) mid1 + mid2)/2;
+
+        int m = nums1.length;
+        int n = nums2.length;
+
+        int low = 0;
+        int high = m;
+
+        while (low <= high) {
+            int partition1 = low + (high - low) / 2;
+            int partition2 = (m + n + 1) / 2 - partition1;
+
+            int left1 = (partition1 == 0)
+                    ? Integer.MIN_VALUE
+                    : nums1[partition1 - 1];
+
+            int right1 = (partition1 == m)
+                    ? Integer.MAX_VALUE
+                    : nums1[partition1];
+
+            int left2 = (partition2 == 0)
+                    ? Integer.MIN_VALUE
+                    : nums2[partition2 - 1];
+
+            int right2 = (partition2 == n)
+                    ? Integer.MAX_VALUE
+                    : nums2[partition2];
+
+            // Correct partition found
+            if (left1 <= right2 && left2 <= right1) {
+
+                // Odd total length
+                if ((m + n) % 2 != 0) {
+                    return Math.max(left1, left2);
+                }
+
+                // Even total length
+                int maxLeft = Math.max(left1, left2);
+                int minRight = Math.min(right1, right2);
+
+                return ((double) maxLeft + minRight) / 2.0;
+            }
+
+            // Move partition in nums1
+            else if (left1 > right2) {
+                high = partition1 - 1;
+            } else {
+                low = partition1 + 1;
+            }
         }
+
+        throw new IllegalArgumentException("Input arrays must be sorted");
     }
 }
