@@ -1,30 +1,18 @@
-import java.util.ArrayList;
-
 class Solution {
     public boolean isPalindrome(int x) {
-      ArrayList <Integer> digits = new ArrayList<>();
 
-      if (x < 0) {
-        return false;
-      }
-
-      if (x>0){
-        while (x>0){
-            int digit = x%10;
-            digits.add(digit);
-            x = x/10;
+        if (x < 0 || (x % 10 == 0 && x != 0)) {
+            return false;
         }
-      }
 
-      ArrayList <Integer> reversedDigits = new ArrayList<>(digits);
-      Collections.reverse(reversedDigits);
+        int reversed = 0;
 
-      System.out.println(digits);
-      System.out.println(reversedDigits);
+        while (x > reversed) {
+            int digit = x % 10;
+            reversed = reversed * 10 + digit;
+            x /= 10;
+        }
 
-      if (digits.equals(reversedDigits)) {
-        return true;
-      }
-      return false;
+        return x == reversed || x == reversed / 10;
     }
 }
